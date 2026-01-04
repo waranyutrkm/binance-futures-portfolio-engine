@@ -1,76 +1,98 @@
 # Binance Futures Portfolio Engine (Quant)
 
-A **browser-based quantitative portfolio backtesting engine** for **Binance Futures**, designed for **multi-asset momentum strategies, risk-based allocation, and batch strategy comparison**, implemented entirely in client-side JavaScript.
+A **fully client-side quantitative portfolio backtesting engine** for **Binance Futures**, designed to research **multi-asset momentum strategies, risk-based allocation, and parameter optimization surfaces** — all executed directly in the browser using JavaScript.
 
-> ⚠️ This project is intended for **research and educational purposes only**.
-> It does **NOT** place real trades and does **NOT** constitute financial advice.
+> ⚠️ This project is intended **strictly for research and educational purposes**.
+> It does **NOT** execute real trades and does **NOT** constitute financial advice.
 
 ---
 
-## 🚀 Key Features
+## 🚀 Core Capabilities
 
-* 📊 **Multi-Asset Futures Portfolio Backtesting**
-* 🧠 **Quantitative Strategy Support**
+### 📊 Multi-Asset Futures Backtesting
 
-  * Momentum (Top-K, Rank-weighted)
+* Cross-sectional portfolio construction on Binance Futures pairs
+* Daily-resolution backtests suitable for medium–long horizon strategies
+* Forward-filled price alignment to ensure continuity
+
+### 🧠 Quantitative Strategy Framework
+
+Supported allocation models include:
+
+* **Momentum-based**
+
+  * Top-K (Equal / Rank-weighted)
+  * Top 50% universe
+  * Absolute Momentum (trend filter)
   * Dual Momentum (Relative + Absolute)
-  * Inverse Volatility (Risk-based allocation)
-  * Equal Weight / Rank All
-* 🔁 **Batch Parameter Sweeping**
+* **Risk-based**
 
-  * Multiple lookback windows
-  * Multiple rebalance frequencies
-* 📈 **Performance Metrics**
+  * Inverse Volatility (Risk Parity–style)
+* **Baseline**
 
-  * CAGR
-  * Sharpe Ratio
-  * Max Drawdown
-  * Portfolio Turnover
-* 🧪 **Rolling Horizon Analysis**
+  * Equal Weight
+  * Rank All
 
-  * Best / Worst / Average returns
-  * Win probability by holding period
-* 📉 **Benchmark Comparison**
+### 🔁 Batch Parameter Optimization
 
-  * BTC
-  * ETH
-  * Equal-weight universe
-* 🔍 **Built-in Data Inspector**
+* Simultaneous sweeping across:
 
-  * Detect missing or broken symbols
-* 🌐 **100% Client-side Execution**
+  * Lookback windows
+  * Rebalance frequencies
+* Automatic ranking by risk-adjusted performance
+* Interactive **3D parameter surface visualization**
 
-  * No backend
-  * No API keys required
+### 📈 Performance & Risk Metrics
+
+* CAGR
+* Sharpe Ratio
+* Sortino Ratio
+* Max Drawdown
+* Calmar Ratio
+* Win Rate (daily)
+* Portfolio turnover & transaction cost impact
+
+### 🔍 Diagnostics & Transparency
+
+* Built-in **Data Inspector**
+
+  * Detects missing, partial, or broken symbols
+* Full **rebalance & allocation logs**
+* Benchmark comparison per run
+
+### 🌐 100% Client-Side Execution
+
+* No backend
+* No database
+* No API keys required
+* Runs entirely in a modern browser
 
 ---
 
-## 🧠 Strategy Overview
+## 🧠 Strategy Summary
 
-| Strategy           | Description                                    |
-| ------------------ | ---------------------------------------------- |
-| Top3 Equal         | Select top 3 assets by momentum, equal weight  |
-| Top3 Rank          | Select top 3 assets, weighted by momentum rank |
-| Rank All           | Allocate across all assets by momentum rank    |
-| Equal Weight       | 1/N allocation across all assets               |
-| Dual Momentum      | Absolute + Relative momentum filter            |
-| Inverse Volatility | Lower volatility receives higher allocation    |
+| Strategy           | Allocation Logic                           |
+| ------------------ | ------------------------------------------ |
+| Top 3 Equal        | Select top 3 momentum assets, equal weight |
+| Top 3 Rank         | Select top 3, weight by momentum rank      |
+| Rank All           | Allocate across entire universe by rank    |
+| Equal Weight       | Uniform 1/N allocation                     |
+| Dual Momentum      | Relative momentum + positive trend filter  |
+| Inverse Volatility | Lower volatility → higher weight           |
 
-**Momentum Signal**
+### Signal Definition
 
-* Lookback return over a configurable window
+* **Momentum**: Lookback return over a configurable window
+* **Volatility**: Rolling standard deviation of daily returns (annualized)
 
-**Rebalancing**
+### Rebalancing
 
-* Periodic portfolio weight adjustment
+* Periodic portfolio reweighting
+* Turnover-based transaction cost applied at each rebalance
 
-**Leverage**
+### Leverage
 
-* Applied directly to daily returns
-
-**Transaction Cost**
-
-* Applied based on portfolio turnover at each rebalance
+* Applied multiplicatively to daily portfolio returns
 
 ---
 
@@ -78,18 +100,18 @@ A **browser-based quantitative portfolio backtesting engine** for **Binance Futu
 
 * **Binance Futures API (FAPI)**
 * Timeframe: **Daily (1D)**
-* Price used: **Close price**
+* Price reference: **Close**
 * Missing data handling: **Forward-fill**
 
 ```
-Endpoint: https://fapi.binance.com/fapi/v1/klines
+GET https://fapi.binance.com/fapi/v1/klines
 ```
 
-> The daily timeframe is intentionally chosen to support long-range backtesting (3–5 years) within browser memory constraints.
+> The daily timeframe is intentionally chosen to enable multi-year backtests (≈2–5 years) while remaining feasible within browser memory constraints.
 
 ---
 
-## 🖥 How to Use
+## 🖥 Usage
 
 ### Option 1: Run Locally
 
@@ -99,60 +121,61 @@ Endpoint: https://fapi.binance.com/fapi/v1/klines
 
    * Strategy
    * Asset universe
-   * Lookback window & rebalance frequency
+   * Lookback window(s)
+   * Rebalance frequency
 4. Click **Run Engine**
 
 ### Option 2: GitHub Pages
 
 1. Fork this repository
-2. Enable GitHub Pages (Settings → Pages)
-3. Run the engine directly from your browser
+2. Enable GitHub Pages
+   `Settings → Pages → Deploy from branch`
+3. Launch the engine directly from your browser
 
 ---
 
-## 📈 Output & Analysis
+## 📈 Outputs & Visualization
 
-* **Batch Comparison Table**
+* **Batch Leaderboard**
 
-  * Automatically sorted by Sharpe Ratio
+  * Ranked by Sharpe Ratio (default)
 * **Equity Curve**
 
-  * Log-scale portfolio growth vs benchmarks
-* **Rolling Analysis**
+  * Log-scale portfolio growth
+  * Strategy vs benchmark comparison
+* **Parameter Surface**
 
-  * Return distribution by holding period
-  * Win probability (> 0%)
-  * Expected annualized return
-* **Rebalance Log**
+  * 3D visualization of performance across (Lookback × Rebalance)
+* **Allocation Logs**
 
-  * Asset allocation history (single-run mode)
+  * Historical weights and turnover per rebalance
 
 ---
 
-## ⚠️ Important Notes
+## ⚠️ Important Considerations
 
-* This engine is designed strictly for **strategy research**
+* This engine is designed for **strategy research**, not production trading
 * Results are highly sensitive to:
 
   * Lookback window
   * Rebalance frequency
-  * Asset universe
+  * Asset universe selection
   * Transaction cost assumptions
-* Crypto futures trading involves **substantial risk**
+* Crypto futures trading involves **significant risk**, including liquidation risk when leverage is used
 
 ---
 
 ## 📄 License
 
-This project is released under the **MIT License**.
+Released under the **MIT License**.
 You are free to use, modify, and distribute this software.
 
 ---
 
 ## 🧪 Disclaimer
 
-This software is provided **“as is”**, without any warranty.
-The author assumes **no responsibility** for any financial losses incurred from its use.
+This software is provided **“as is”**, without warranty of any kind.
+The author assumes **no responsibility** for financial losses resulting from the use of this software.
 
 Use at your own risk.
 
@@ -162,8 +185,9 @@ Use at your own risk.
 
 Inspired by:
 
-* Quantitative momentum strategies
+* Cross-sectional momentum research
 * Dual Momentum (Gary Antonacci)
-* Portfolio theory and risk parity concepts
+* Portfolio theory & risk parity concepts
+* Quantitative backtesting methodologies
 
-
+บอกเป้าหมายมาได้เลยครับ เดี๋ยวจัดให้ตรงสาย 🔥
