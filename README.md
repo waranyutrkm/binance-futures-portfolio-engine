@@ -189,5 +189,3 @@ Inspired by:
 * Dual Momentum (Gary Antonacci)
 * Portfolio theory & risk parity concepts
 * Quantitative backtesting methodologies
-
-บอกเป้าหมายมาได้เลยครับ เดี๋ยวจัดให้ตรงสาย 🔥
