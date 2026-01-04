@@ -95,6 +95,17 @@
         .status-ok { background: #dcfce7; color: #166534; }
         .status-warn { background: #fef9c3; color: #854d0e; }
         .status-err { background: #fee2e2; color: #991b1b; }
+
+        /* Docs styling */
+        .doc-section { margin-bottom: 2.5rem; }
+        .doc-section h3 { color: #1e293b; font-weight: 800; margin-bottom: 1rem; font-size: 1.25rem; border-left: 6px solid #f59e0b; padding-left: 1rem; background: #fffbeb; padding-top: 0.5rem; padding-bottom: 0.5rem; border-radius: 0 8px 8px 0; }
+        .doc-section h4 { color: #475569; font-weight: 700; margin-top: 1.5rem; margin-bottom: 0.5rem; font-size: 1rem; display: flex; align-items: center; gap: 0.5rem; border-bottom: 1px solid #e2e8f0; padding-bottom: 0.25rem;}
+        .doc-step { margin-left: 0.5rem; padding-left: 1rem; border-left: 2px solid #e2e8f0; margin-bottom: 1rem; }
+        .doc-step-title { font-weight: 600; color: #334155; font-size: 0.95rem; margin-bottom: 0.25rem; }
+        .doc-step-desc { color: #64748b; font-size: 0.9rem; line-height: 1.6; }
+        .math-block { background: #1e293b; color: #e2e8f0; padding: 1rem; border-radius: 8px; font-family: 'Courier New', monospace; font-size: 0.85rem; overflow-x: auto; margin: 0.75rem 0; border: 1px solid #334155; box-shadow: inset 0 2px 4px rgba(0,0,0,0.1); }
+        .example-box { background: #f8fafc; border: 1px dashed #cbd5e1; padding: 0.75rem; border-radius: 6px; font-size: 0.85rem; color: #475569; margin-top: 0.5rem; }
+        .highlight { color: #f59e0b; font-weight: bold; }
     </style>
 </head>
 
@@ -147,9 +158,7 @@
                             <label class="text-[10px] font-bold text-slate-500 uppercase mb-1.5 block">Rebalance Logic</label>
                             <div class="relative">
                                 <select id="strategy-select" onchange="updateStrategyDesc()" class="w-full bg-slate-50 border border-slate-200 rounded-lg text-xs py-2 px-3 focus:border-yellow-500 outline-none appearance-none font-medium text-slate-700">
-                                    <optgroup label="🌟 Batch Analysis">
-                                        <option value="ALL">Run All Strategies (Compare All)</option>
-                                    </optgroup>
+                                    <option value="ALL_STRATEGIES" class="bg-yellow-100 font-bold text-yellow-800">★ RUN ALL STRATEGIES (Compare All)</option>
                                     <optgroup label="Simple Weighting">
                                         <option value="Rank_All">Rank All (Weight by Rank)</option>
                                         <option value="Equal_Weight">Equal Weight (All Coins)</option>
@@ -176,12 +185,14 @@
                         <!-- Benchmark Selector -->
                         <div class="mb-4">
                             <label class="text-[10px] font-bold text-slate-500 uppercase mb-1.5 block">Benchmark</label>
-                            <select id="benchmark-select" class="w-full bg-slate-50 border border-slate-200 rounded-lg text-xs py-2 px-3 focus:border-yellow-500 outline-none">
+                            <select id="benchmark-select" onchange="toggleBenchInput(this.value)" class="w-full bg-slate-50 border border-slate-200 rounded-lg text-xs py-2 px-3 focus:border-yellow-500 outline-none">
                                 <option value="BTCUSDT">Bitcoin (BTCUSDT)</option>
                                 <option value="ETHUSDT">Ethereum (ETHUSDT)</option>
                                 <option value="EQUAL_WEIGHT">Equal Weight Universe</option>
+                                <option value="CUSTOM">Custom Ticker...</option>
                                 <option value="">None (Absolute)</option>
                             </select>
+                            <input type="text" id="benchmark-custom-input" class="hidden w-full mt-2 bg-white border border-slate-300 rounded-lg text-xs py-2 px-3 focus:border-yellow-500 outline-none uppercase placeholder-slate-400" placeholder="Type Ticker (e.g. SOLUSDT)">
                         </div>
 
                         <!-- Asset Universe -->
@@ -206,10 +217,10 @@
                                     <option value="XRPUSDT">XRPUSDT</option>
                                     <option value="AVAXUSDT">AVAXUSDT</option>
                                 </optgroup>
-                                <optgroup label="Meme / Alt (Corrected Symbols)">
+                                <optgroup label="Meme / Alt">
                                     <option value="DOGEUSDT">DOGEUSDT</option>
-                                    <option value="1000SHIBUSDT">1000SHIBUSDT</option>
-                                    <option value="1000PEPEUSDT">1000PEPEUSDT</option>
+                                    <option value="SHIBUSDT">SHIBUSDT</option>
+                                    <option value="PEPEUSDT">PEPEUSDT</option>
                                     <option value="LINKUSDT">LINKUSDT</option>
                                     <option value="DOTUSDT">DOTUSDT</option>
                                 </optgroup>
@@ -240,7 +251,7 @@
                                     <label class="text-[10px] font-bold text-slate-500 uppercase">Lookback (Days/Bars)</label>
                                     <span class="info-btn" onclick="showInfo('lookback')">?</span>
                                 </div>
-                                <input type="text" id="param-lookback" value="20, 60, 90" class="w-full bg-slate-50 border border-slate-200 rounded text-sm p-2 text-slate-700 font-mono placeholder-slate-400" placeholder="e.g. 20, 60">
+                                <input type="text" id="param-lookback" value="20, 60" class="w-full bg-slate-50 border border-slate-200 rounded text-sm p-2 text-slate-700 font-mono placeholder-slate-400" placeholder="e.g. 20, 60">
                                 <p class="text-[9px] text-slate-400 mt-1">Comma separated for batch test (Daily timeframe)</p>
                             </div>
                             <div>
@@ -248,7 +259,7 @@
                                     <label class="text-[10px] font-bold text-slate-500 uppercase">Rebalance (Days)</label>
                                     <span class="info-btn" onclick="showInfo('rebalance')">?</span>
                                 </div>
-                                <input type="text" id="param-rebal" value="7, 14, 30" class="w-full bg-slate-50 border border-slate-200 rounded text-sm p-2 text-slate-700 font-mono placeholder-slate-400" placeholder="e.g. 7, 30">
+                                <input type="text" id="param-rebal" value="7, 30" class="w-full bg-slate-50 border border-slate-200 rounded text-sm p-2 text-slate-700 font-mono placeholder-slate-400" placeholder="e.g. 7, 30">
                             </div>
                         </div>
 
@@ -293,15 +304,13 @@
                             </div>
                         </div>
 
-                        <div class="flex flex-col gap-2">
-                            <div class="flex gap-2">
-                                <button id="btn-run" onclick="runBatchEngine()" class="flex-1 bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-3 rounded-lg shadow-lg flex items-center justify-center gap-2 transition-all">
-                                    <span>Run Engine</span>
-                                </button>
-                                <button onclick="showDataInspector()" class="px-3 bg-white border border-slate-200 hover:bg-slate-50 text-slate-600 rounded-lg shadow-sm flex items-center justify-center" title="Inspect Raw Data">
-                                    🔍
-                                </button>
-                            </div>
+                        <div class="flex gap-2">
+                            <button id="btn-run" onclick="runBatchEngine()" class="flex-1 bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-3 rounded-lg shadow-lg flex items-center justify-center gap-2 transition-all">
+                                <span>Run Batch Backtest</span>
+                            </button>
+                            <button onclick="showDataInspector()" class="px-3 bg-white border border-slate-200 hover:bg-slate-50 text-slate-600 rounded-lg shadow-sm flex items-center justify-center" title="Inspect Raw Data">
+                                🔍
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -329,7 +338,7 @@
                                 <table class="w-full text-xs text-right rebal-table">
                                     <thead class="bg-slate-50 text-slate-600 font-bold border-b border-slate-200">
                                         <tr>
-                                            <th class="th-tooltip text-left" data-tip="Strategy Name" onclick="sortTable('strat')">Strat ↕</th>
+                                            <th>Strategy / Setup</th>
                                             <th class="th-tooltip" data-tip="Lookback Period (Days)" onclick="sortTable('lb')">LB ↕</th>
                                             <th class="th-tooltip" data-tip="Rebalance Frequency (Days)" onclick="sortTable('rb')">RB ↕</th>
                                             <th class="th-tooltip" data-tip="Compound Annual Growth Rate" onclick="sortTable('cagr')">CAGR ↕</th>
@@ -351,11 +360,6 @@
 
                         <!-- Selected Result Details -->
                         <div id="single-result-view" class="space-y-6 animate-fade-in">
-                            <div class="bg-indigo-50 border border-indigo-100 p-3 rounded-lg mb-4 text-center">
-                                <span class="text-xs font-bold text-indigo-500 uppercase">Selected Strategy</span>
-                                <div id="res-strat-name" class="text-lg font-bold text-indigo-800">-</div>
-                            </div>
-
                             <!-- Key Stats with Benchmark -->
                             <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
                                 <div class="modern-card p-4 border-l-4 border-emerald-500">
@@ -453,20 +457,22 @@
         <div id="view-history" class="hidden max-w-7xl mx-auto space-y-6">
              <div class="modern-card p-6">
                 <div class="flex justify-between items-center mb-6">
-                    <h2 class="text-xl font-bold text-slate-800">Rebalance History Log</h2>
-                    <p class="text-xs text-slate-500">Showing log for selected strategy</p>
+                    <div>
+                        <h2 class="text-xl font-bold text-slate-800">Rebalance History Log</h2>
+                        <p class="text-xs text-slate-500">บันทึกการปรับพอร์ตทุกครั้ง (Run Simulation ก่อนเพื่อดูข้อมูล)</p>
+                    </div>
                 </div>
-                <div class="overflow-x-auto rounded-lg border border-slate-200">
+                <div class="overflow-x-auto rounded-lg border border-slate-200 max-h-[800px] overflow-y-auto">
                     <table class="w-full rebal-table" id="history-table">
-                        <thead class="bg-slate-50">
+                        <thead class="bg-slate-50 sticky top-0 z-10 shadow-sm">
                             <tr>
-                                <th>Date</th>
-                                <th>Portfolio Action</th>
-                                <th>Turnover</th>
+                                <th class="w-32">Date</th>
+                                <th>Target Allocation (น้ำหนักเป้าหมาย)</th>
+                                <th class="w-24">Turnover</th>
                             </tr>
                         </thead>
                         <tbody class="bg-white" id="history-body">
-                            <tr><td colspan="3" class="text-center py-4">Run the simulation to see history</td></tr>
+                            <tr><td colspan="3" class="text-center py-4 text-slate-400">ยังไม่มีข้อมูล กรุณากด Run Batch Backtest</td></tr>
                         </tbody>
                     </table>
                 </div>
@@ -475,31 +481,202 @@
 
         <!-- VIEW 3: METHODOLOGY (Docs) -->
         <div id="view-docs" class="hidden max-w-4xl mx-auto my-8 space-y-8 animate-fade-in">
-             <div class="p-6 bg-white border border-slate-200 rounded-xl">
-                <h2 class="text-xl font-bold text-slate-800 mb-4">Binance Futures Portfolio Engine Logic</h2>
-                <div class="space-y-4 text-sm text-slate-600">
-                    <p>This engine applies quantitative portfolio theory to the crypto futures market using <strong>Daily (1D)</strong> data for long-term backtesting.</p>
-                    
-                    <h3 class="font-bold text-slate-800">1. Data Source</h3>
-                    <ul class="list-disc list-inside">
-                        <li><strong>Source:</strong> Binance FAPI (Futures API).</li>
-                        <li><strong>Interval:</strong> Daily (1d). This ensures ability to backtest 3-5 years without hitting browser memory limits.</li>
-                        <li><strong>Filling:</strong> Missing data is filled forward.</li>
-                    </ul>
-
-                    <h3 class="font-bold text-slate-800">2. Portfolio Strategies</h3>
-                    <ul class="list-disc list-inside">
-                        <li><strong>Top 3 Equal:</strong> Selects the 3 best performing assets over the Lookback period and allocates 33% to each.</li>
-                        <li><strong>Rank All:</strong> Allocates to all assets, weighted by their momentum rank (higher momentum = higher weight).</li>
-                        <li><strong>Dual Momentum:</strong> Only invests if asset is in uptrend (Absolute > 0) AND performing better than peers (Relative).</li>
-                    </ul>
-
-                    <h3 class="font-bold text-slate-800">3. Leverage & Cost</h3>
-                    <ul class="list-disc list-inside">
-                        <li><strong>Leverage:</strong> Applied to daily returns. Effect = (Return * Leverage).</li>
-                        <li><strong>Cost:</strong> Fee + Slippage is applied to the <em>Turnover</em> amount on rebalance days.</li>
-                    </ul>
+             <div class="p-8 bg-white border border-slate-200 rounded-xl shadow-sm">
+                <h2 class="text-2xl font-bold text-slate-800 mb-6 border-b pb-4">กลไกการทำงานอย่างละเอียด (Detailed Engine Logic)</h2>
+                
+                <div class="doc-section">
+                    <h3>Step 1: Data Acquisition (การดึงข้อมูลดิบ)</h3>
+                    <div class="doc-step">
+                        <div class="doc-step-title">1.1 Source & Timeframe</div>
+                        <div class="doc-step-desc">
+                            ระบบเชื่อมต่อโดยตรงกับ <strong>Binance Futures API (FAPI)</strong> โดยดึงข้อมูลแท่งเทียน (Klines/Candlestick) ในระดับ <strong>1 วัน (1 Day)</strong> เพื่อให้สามารถทำ Backtest ระยะยาว 2-4 ปีได้โดยไม่กินทรัพยากรเครื่องมากเกินไป
+                        </div>
+                    </div>
+                    <div class="doc-step">
+                        <div class="doc-step-title">1.2 Data Cleaning</div>
+                        <div class="doc-step-desc">
+                            ตลาดคริปโตเทรด 24/7 แต่บางครั้งข้อมูล API อาจจะขาดหาย (Missing Candles) ระบบใช้เทคนิค <strong>Fill Forward</strong> คือถ้าราคาของวันใดหายไป จะใช้ราคาของ "วันก่อนหน้า" มาแทนที่ เพื่อป้องกันการคำนวณ Error
+                        </div>
+                    </div>
                 </div>
+
+                <div class="doc-section">
+                    <h3>Step 2: Indicator Calculation (การคำนวณตัวชี้วัด)</h3>
+                    <div class="doc-step">
+                        <div class="doc-step-title">2.1 Daily Returns (ผลตอบแทนรายวัน)</div>
+                        <div class="doc-step-desc">
+                            คำนวณ % การเปลี่ยนแปลงของราคาเทียบกับวันก่อนหน้า เพื่อใช้ในการวัดกำไร/ขาดทุน และความผันผวน
+                            <div class="math-block">Return(t) = (Price(t) / Price(t-1)) - 1</div>
+                        </div>
+                    </div>
+                    <div class="doc-step">
+                        <div class="doc-step-title">2.2 Momentum Score (ค่าโมเมนตัม)</div>
+                        <div class="doc-step-desc">
+                            ใช้วัดความแข็งแกร่งของเทรนด์ โดยเทียบราคาปัจจุบันกับราคาเมื่อ X วันก่อน (Lookback Period)
+                            <div class="math-block">Momentum = (Price(t) / Price(t - Lookback)) - 1</div>
+                        </div>
+                    </div>
+                    <div class="doc-step">
+                        <div class="doc-step-title">2.3 Volatility (ความผันผวน)</div>
+                        <div class="doc-step-desc">
+                            ใช้วัดความเสี่ยง คำนวณจาก Standard Deviation (ส่วนเบี่ยงเบนมาตรฐาน) ของ Daily Returns ย้อนหลัง 20 วัน
+                            <div class="math-block">Vol = StdDev(Returns, 20 Days)</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="doc-section">
+                    <h3>Step 3: Rebalance Logic (เจาะลึก 8 กลยุทธ์)</h3>
+                    <p class="text-sm text-slate-600 mb-4">ในวัน Rebalance ระบบจะคำนวณน้ำหนัก (Target Weight) ของแต่ละเหรียญตาม Logic ที่เลือก ดังนี้:</p>
+                    
+                    <div class="mb-8">
+                        <h4>1. Rank All (Weight by Rank)</h4>
+                        <div class="text-sm text-slate-600 mb-2">ให้น้ำหนักตามลำดับ Momentum (ตัวเก่งได้เยอะสุด ตัวอ่อนได้น้อยสุด)</div>
+                        <div class="math-block">Weight = Rank / Sum_of_Ranks</div>
+                        <div class="example-box">
+                            <strong>Example:</strong> มี 4 เหรียญ (A, B, C, D) เรียงตาม Momentum:<br>
+                            1. A (Rank 4, ดีสุด)<br>
+                            2. B (Rank 3)<br>
+                            3. C (Rank 2)<br>
+                            4. D (Rank 1, แย่สุด)<br>
+                            <br>
+                            Sum of Ranks = 4+3+2+1 = 10<br>
+                            Weight A = 4/10 = 40%<br>
+                            Weight B = 3/10 = 30%<br>
+                            Weight C = 2/10 = 20%<br>
+                            Weight D = 1/10 = 10%
+                        </div>
+                    </div>
+
+                    <div class="mb-8">
+                        <h4>2. Equal Weight</h4>
+                        <div class="text-sm text-slate-600 mb-2">หารเท่ากันทุกตัวใน Universe ไม่สนใจความเก่ง</div>
+                        <div class="math-block">Weight = 1 / Total_Assets</div>
+                        <div class="example-box">
+                            <strong>Example:</strong> มี 4 เหรียญ (A, B, C, D)<br>
+                            Weight = 1/4 = 25% ทุกตัว
+                        </div>
+                    </div>
+
+                    <div class="mb-8">
+                        <h4>3. Top 3 Equal Weight (Leader)</h4>
+                        <div class="text-sm text-slate-600 mb-2">เลือกเฉพาะ 3 ตัวท็อป แล้วหารเท่า</div>
+                        <div class="math-block">
+                            Sort by Momentum Descending<br>
+                            Select Top 3<br>
+                            Weight = 1/3 (for Top 3), else 0
+                        </div>
+                        <div class="example-box">
+                            <strong>Example:</strong> Momentum: A(10%), B(8%), C(5%), D(-2%)<br>
+                            เลือก A, B, C<br>
+                            Weight: A=33.3%, B=33.3%, C=33.3%, D=0%
+                        </div>
+                    </div>
+
+                    <div class="mb-8">
+                        <h4>4. Top 3 Weighted by Rank</h4>
+                        <div class="text-sm text-slate-600 mb-2">เลือกเฉพาะ 3 ตัวท็อป แต่ให้น้ำหนักตามลำดับ (เก่งมากได้มาก)</div>
+                        <div class="math-block">
+                            Top 3 Ranks: 3, 2, 1<br>
+                            Sum = 3+2+1 = 6<br>
+                            Weight 1 = 3/6, Weight 2 = 2/6, Weight 3 = 1/6
+                        </div>
+                        <div class="example-box">
+                            <strong>Example:</strong> Momentum: A(10%), B(8%), C(5%), D(-2%)<br>
+                            A (Rank 3) = 3/6 = 50%<br>
+                            B (Rank 2) = 2/6 = 33.3%<br>
+                            C (Rank 1) = 1/6 = 16.7%<br>
+                            D = 0%
+                        </div>
+                    </div>
+
+                    <div class="mb-8">
+                        <h4>5. Top 50% of Universe</h4>
+                        <div class="text-sm text-slate-600 mb-2">เลือกครึ่งบนของตาราง แล้วหารเท่า</div>
+                        <div class="math-block">
+                            Count = Ceiling(Total_Assets / 2)<br>
+                            Weight = 1 / Count
+                        </div>
+                        <div class="example-box">
+                            <strong>Example:</strong> มี 6 เหรียญ<br>
+                            เลือก 3 ตัวที่ดีที่สุด (Top 50%)<br>
+                            Weight = 1/3 = 33.3% สำหรับตัวที่ผ่านเกณฑ์
+                        </div>
+                    </div>
+
+                    <div class="mb-8">
+                        <h4>6. Absolute Momentum (Trend Following)</h4>
+                        <div class="text-sm text-slate-600 mb-2">ถือเฉพาะตัวที่เป็นขาขึ้น (Momentum > 0) เท่านั้น ถ้าไม่มีขาขึ้นเลยให้ถือเงินสด</div>
+                        <div class="math-block">
+                            Select Assets where Price > Price(t-Lookback)<br>
+                            Weight = 1 / Count_Selected
+                        </div>
+                        <div class="example-box">
+                            <strong>Example:</strong><br>
+                            A (Mom +10%) -> ผ่าน<br>
+                            B (Mom +5%) -> ผ่าน<br>
+                            C (Mom -2%) -> ไม่ผ่าน<br>
+                            Weight: A=50%, B=50%, C=0% (Cash 0%)<br>
+                            *ถ้าไม่มีตัวไหนผ่านเลย พอร์ตจะเป็น Cash 100%*
+                        </div>
+                    </div>
+
+                    <div class="mb-8">
+                        <h4>7. Dual Momentum (Relative + Absolute)</h4>
+                        <div class="text-sm text-slate-600 mb-2">ต้องผ่าน 2 ด่าน: 1.ต้องชนะเพื่อน (Top 50%) และ 2.ต้องเป็นขาขึ้น (Mom > 0)</div>
+                        <div class="math-block">
+                            Filter 1: Top 50% by Rank<br>
+                            Filter 2: Momentum > 0<br>
+                            Weight = 1 / Count_Passed
+                        </div>
+                        <div class="example-box">
+                            <strong>Example:</strong> มี 4 ตัว (A, B, C, D)<br>
+                            Top 50% (Relative) คือ A, B<br>
+                            Check Absolute: A(+10%), B(-2%)<br>
+                            B ตกรอบเพราะเป็นขาลง แม้จะชนะ C, D<br>
+                            Final: ถือ A ตัวเดียว 100% (หรือแบ่ง Cash ตามสัดส่วน)
+                        </div>
+                    </div>
+
+                    <div class="mb-8">
+                        <h4>8. Inverse Volatility (Low Risk)</h4>
+                        <div class="text-sm text-slate-600 mb-2">ให้เหรียญที่ความผันผวนต่ำ (Safe Haven) มีน้ำหนักเยอะ เหรียญซิ่งมีน้ำหนักน้อย</div>
+                        <div class="math-block">
+                            Inv_Vol = 1 / Volatility<br>
+                            Weight = Inv_Vol / Sum(Inv_Vol)
+                        </div>
+                        <div class="example-box">
+                            <strong>Example:</strong><br>
+                            Asset A (Vol 2%) -> Inv = 1/2 = 0.5<br>
+                            Asset B (Vol 5%) -> Inv = 1/5 = 0.2<br>
+                            Asset C (Vol 10%) -> Inv = 1/10 = 0.1<br>
+                            <br>
+                            Sum = 0.5 + 0.2 + 0.1 = 0.8<br>
+                            Weight A = 0.5/0.8 = 62.5% (นิ่งสุด ถือเยอะสุด)<br>
+                            Weight B = 0.2/0.8 = 25%<br>
+                            Weight C = 0.1/0.8 = 12.5% (ผันผวนสุด ถือน้อยสุด)
+                        </div>
+                    </div>
+                </div>
+
+                <div class="doc-section">
+                    <h3>Step 4: Portfolio Simulation (การจำลองพอร์ต)</h3>
+                    <div class="doc-step">
+                        <div class="doc-step-title">4.1 Cost Deduction (หักค่าธรรมเนียม)</div>
+                        <div class="doc-step-desc">
+                            เมื่อเกิดการ Rebalance ระบบจะหักค่าธรรมเนียม + Slippage จากมูลค่าพอร์ตทันที
+                            <div class="math-block">New_Portfolio_Value = Old_Value * (1 - (Turnover * Cost_Rate))</div>
+                        </div>
+                    </div>
+                    <div class="doc-step">
+                        <div class="doc-step-title">4.2 Daily NAV Update (อัปเดตมูลค่ารายวัน)</div>
+                        <div class="doc-step-desc">
+                            ในวันที่ไม่มีการ Rebalance มูลค่าพอร์ตจะเติบโตตามน้ำหนักเหรียญที่ถืออยู่ คูณด้วยผลตอบแทนของเหรียญนั้นๆ (รวม Leverage)
+                            <div class="math-block">NAV(t) = NAV(t-1) * (1 + (Portfolio_Return * Leverage))</div>
+                        </div>
+                    </div>
+                </div>
+
              </div>
         </div>
 
@@ -571,7 +748,7 @@
 
     // --- TEXTS ---
     const STRAT_DESCS = {
-        "ALL": "Run every strategy below and compare results in the Batch Table.",
+        "ALL_STRATEGIES": "System will run ALL available strategies against the parameter sets to compare performance.",
         "Rank_All": "Weight all assets based on momentum rank. (Rank 1 gets highest weight).",
         "Equal_Weight": "Equal allocation to all assets in the universe (1/N).",
         "Top3_Equal": "Select top 3 assets by momentum. Allocate 33.3% to each.",
@@ -580,11 +757,6 @@
         "AbsMom": "Only hold assets with positive trend (Price > Lookback Price). Otherwise Cash.",
         "DualMom_Rel": "Must be positive trend AND in top 50% relative strength.",
         "InvVol": "Inverse Volatility: Low volatility assets get higher weight."
-    };
-    const STRAT_SHORT_NAMES = {
-        "Rank_All": "Rank All", "Equal_Weight": "Eq Wgt", "Top3_Equal": "Top3 Eq", 
-        "Top3_Rank": "Top3 Rnk", "Top50pct": "Top 50%", "AbsMom": "Abs Mom", 
-        "DualMom_Rel": "Dual Mom", "InvVol": "Inv Vol"
     };
     const INFO_TEXTS = {
         "strategy_logic": "<b>Strategy Logic</b> defines how the portfolio is rebalanced each period.",
@@ -620,6 +792,12 @@
     function showEl(id) { const el = document.getElementById(id); if(el) el.classList.remove('hidden'); }
     function hideEl(id) { const el = document.getElementById(id); if(el) el.classList.add('hidden'); }
     
+    function toggleBenchInput(v) {
+        const el = document.getElementById('benchmark-custom-input');
+        if(v === 'CUSTOM') el.classList.remove('hidden');
+        else el.classList.add('hidden');
+    }
+
     // --- INSPECTOR HELPERS ---
     function showDataInspector() {
         const modal = document.getElementById('inspector-modal');
@@ -670,10 +848,6 @@
     async function fetchBinanceData(symbol, start, end) {
         let startTime = new Date(start).getTime();
         const endTime = new Date(end).getTime();
-        
-        if (isNaN(startTime) || isNaN(endTime)) return []; // Guard
-        if (startTime >= endTime) return [];
-
         let allKlines = [];
         const interval = '1d'; 
 
@@ -681,12 +855,8 @@
             while (startTime < endTime) {
                 const url = `https://fapi.binance.com/fapi/v1/klines?symbol=${symbol}&interval=${interval}&startTime=${startTime}&endTime=${endTime}&limit=1500`;
                 const res = await fetch(url);
-                if (!res.ok) {
-                    console.warn(`Binance fetch failed for ${symbol}: ${res.status}`);
-                    return []; // Return empty instead of throw to keep Promise.all alive
-                }
+                if (!res.ok) throw new Error(`Binance Error ${res.status}`);
                 const data = await res.json();
-                
                 if (!Array.isArray(data) || data.length === 0) break;
 
                 data.forEach(k => {
@@ -697,8 +867,7 @@
                 });
                 
                 startTime = data[data.length - 1][0] + 1;
-                // Rate limit guard
-                await new Promise(r => setTimeout(r, 50));
+                await new Promise(r => setTimeout(r, 20)); // Rate limit
             }
             allKlines._source = "BINANCE_FAPI";
             return allKlines;
@@ -800,12 +969,9 @@
 
     // --- MAIN ENGINE ---
     async function runBatchEngine() {
-        const btn=document.getElementById('btn-run');
-        const over=document.getElementById('loading-overlay'), status=document.getElementById('loading-status');
-        
+        const btn=document.getElementById('btn-run'), over=document.getElementById('loading-overlay'), status=document.getElementById('loading-status');
         if(btn) btn.disabled=true; 
         if(over) { over.classList.remove('hidden'); over.classList.add('flex'); }
-        
         STATE.batchResults=[];
 
         try {
@@ -815,26 +981,32 @@
             const leverage = parseFloat(getVal('param-leverage')) || 1;
             const tcost=parseFloat(getVal('cost-tcost'))/100;
             const selectedStrat=document.getElementById('strategy-select').value;
-            const benchSym=document.getElementById('benchmark-select').value;
+            let benchSym=document.getElementById('benchmark-select').value;
+            
+            // Custom Benchmark Logic
+            if(benchSym === 'CUSTOM') {
+                const customInput = document.getElementById('benchmark-custom-input').value.trim().toUpperCase();
+                benchSym = customInput || "BTCUSDT"; // Fallback
+            }
+
             const horizons = getVal('param-horizons').split(',').map(x=>parseInt(x.trim())).filter(x=>!isNaN(x));
             const rollStepYears = parseFloat(getVal('param-roll-step')) || 0.1;
             const rollStep = Math.max(1, Math.floor(rollStepYears * 252));
 
-            // Determine Strategy List (NEW LOGIC)
-            let stratList = [selectedStrat];
-            let isRunAll = (selectedStrat === 'ALL');
-            
-            if (isRunAll) {
-                // Get all options from select except ALL
-                const options = document.querySelectorAll('#strategy-select option');
-                stratList = Array.from(options).map(o => o.value).filter(v => v && v !== 'ALL'); 
+            // Strategy List Logic
+            let strategiesToRun = [];
+            if(selectedStrat === 'ALL_STRATEGIES') {
+                // Filter out the 'ALL_STRATEGIES' key itself
+                strategiesToRun = Object.keys(STRAT_DESCS).filter(k => k !== 'ALL_STRATEGIES');
+            } else {
+                strategiesToRun = [selectedStrat];
             }
 
-            // 1. Fetch Data (Common)
+            // 1. Fetch Data
             status.innerText = `Fetching ${STATE.assets.length} crypto pairs from Binance...`;
             const raw = await Promise.all(STATE.assets.map(s=>fetchBinanceData(s, start, end)));
             
-            // 2. Data Inspection & Alignment
+            // 2. Data Inspection
             const report = [];
             STATE.assets.forEach((a, i) => {
                 const d = raw[i];
@@ -844,28 +1016,26 @@
             });
             STATE.dataInspectionReport = report;
 
-            let dates = raw[0] && raw[0].length ? raw[0].map(d=>d.date) : [];
+            // Alignment
+            let dates = raw[0].map(d=>d.date); 
             const prices = [];
-            
-            if(dates.length > 0) {
-                dates.forEach(d => {
-                    let row={date:d}; 
-                    STATE.assets.forEach((s,i)=>{ 
-                        const f=raw[i].find(x=>x.date===d); 
-                        if(f) row[s]=f.price; 
-                    });
-                    STATE.assets.forEach(s => {
-                       if(!row[s] && prices.length>0) row[s] = prices[prices.length-1][s];
-                    });
-                    if(STATE.assets.every(k=>row[k]!==undefined)) prices.push(row);
+            dates.forEach(d => {
+                let row={date:d}; 
+                STATE.assets.forEach((s,i)=>{ 
+                    const f=raw[i].find(x=>x.date===d); 
+                    if(f) row[s]=f.price; 
                 });
-                dates = prices.map(p=>p.date);
-            }
+                STATE.assets.forEach(s => {
+                   if(!row[s] && prices.length>0) row[s] = prices[prices.length-1][s];
+                });
+                if(STATE.assets.every(k=>row[k]!==undefined)) prices.push(row);
+            });
+            dates = prices.map(p=>p.date);
 
             // 3. Benchmark Data
             STATE.benchmarkData = null;
             if(benchSym && benchSym!=="EQUAL_WEIGHT") {
-                status.innerText = "Fetching Benchmark...";
+                status.innerText = `Fetching Benchmark (${benchSym})...`;
                 const bRaw = await fetchBinanceData(benchSym, start, end);
                 STATE.benchmarkData = dates.map(d=> {
                     const f = bRaw.find(x=>x.date===d);
@@ -873,111 +1043,106 @@
                 });
             }
 
-            // 4. Pre-Calc Indicators (Common across strategies)
-            if(prices.length > 0) {
-                status.innerText="Calculating Common Indicators...";
-                const daily={}, vols={}, sigs={};
-                STATE.assets.forEach(s => {
-                    const p = prices.map(r=>r[s]);
-                    daily[s] = new Array(p.length).fill(0);
-                    for(let i=1;i<p.length;i++) {
-                        const prev = p[i-1];
-                        daily[s][i] = (prev && prev !== 0) ? (p[i]/prev - 1) : 0;
-                    }
-                    vols[s] = calcVol(daily[s], 20); 
-                });
-                
-                lbs.forEach(lb => {
-                    sigs[lb]={}; 
-                    STATE.assets.forEach(s => sigs[lb][s] = calcReturns(prices.map(r=>r[s]), lb));
-                });
+            // 4. Pre-Calc Indicators
+            status.innerText="Calculating Indicators...";
+            const daily={}, vols={}, sigs={};
+            STATE.assets.forEach(s => {
+                const p = prices.map(r=>r[s]);
+                daily[s] = new Array(p.length).fill(0);
+                for(let i=1;i<p.length;i++) {
+                    const prev = p[i-1];
+                    daily[s][i] = (prev && prev !== 0) ? (p[i]/prev - 1) : 0;
+                }
+                vols[s] = calcVol(daily[s], 20); 
+            });
+            
+            lbs.forEach(lb => {
+                sigs[lb]={}; 
+                STATE.assets.forEach(s => sigs[lb][s] = calcReturns(prices.map(r=>r[s]), lb));
+            });
 
-                // 5. Strategy Loop
-                let totalSims = stratList.length * lbs.length * rbs.length;
-                let currentSim = 0;
+            // 5. Simulation Loop
+            status.innerText="Running Simulations...";
+            
+            // Loop through Strategies first
+            for(let stratName of strategiesToRun) {
+                for(let lb of lbs) {
+                    for(let rb of rbs) {
+                        let va=1000, ca=[1000], w={}, totTO=0, log=[];
+                        STATE.assets.forEach(k=>w[k]=0);
+                        
+                        const startIdx = Math.max(lb, 20); 
+                        if(startIdx >= prices.length) continue;
 
-                for (let strat of stratList) {
-                    status.innerText = `Simulating ${STRAT_SHORT_NAMES[strat] || strat}...`;
-                    
-                    for(let lb of lbs) {
-                        for(let rb of rbs) {
-                            currentSim++;
+                        for(let t=startIdx; t<prices.length; t++) {
+                            let dr=0; 
+                            STATE.assets.forEach(k=>dr+=w[k]*(daily[k][t]||0));
+                            if(isNaN(dr)) dr=0;
                             
-                            let va=1000, ca=[1000], w={}, totTO=0, log=[];
-                            STATE.assets.forEach(k=>w[k]=0);
-                            
-                            const startIdx = Math.max(lb, 20); 
-                            if(startIdx >= prices.length) continue;
+                            const levDr = dr * leverage;
+                            va *= (1 + levDr);
+                            if(va < 0) va = 0; 
 
-                            for(let t=startIdx; t<prices.length; t++) {
-                                // Return
-                                let dr=0; 
-                                STATE.assets.forEach(k=>dr+=w[k]*(daily[k][t]||0));
-                                if(isNaN(dr)) dr=0;
+                            if((t-startIdx) % rb === 0) {
+                                const sT={}, vT={}; 
+                                STATE.assets.forEach(k=>{ sT[k]=sigs[lb][k][t]||0; vT[k]=vols[k][t]||0; });
                                 
-                                // Leverage
-                                const levDr = dr * leverage;
-                                va *= (1 + levDr);
-                                if(va < 0) va = 0; 
+                                const tw = getWeights(stratName, sT, vT, STATE.assets);
+                                
+                                let to=0; 
+                                STATE.assets.forEach(k=>to+=Math.abs((tw[k]||0)-(w[k]||0)));
+                                
+                                const costAmt = to * tcost; 
+                                va *= (1 - costAmt);
 
-                                // Rebalance
-                                if((t-startIdx) % rb === 0) {
-                                    const sT={}, vT={}; 
-                                    STATE.assets.forEach(k=>{ sT[k]=sigs[lb][k][t]||0; vT[k]=vols[k][t]||0; });
-                                    
-                                    const tw = getWeights(strat, sT, vT, STATE.assets);
-                                    
-                                    let to=0; 
-                                    STATE.assets.forEach(k=>to+=Math.abs((tw[k]||0)-(w[k]||0)));
-                                    
-                                    const costAmt = to * tcost; 
-                                    va *= (1 - costAmt);
-
-                                    totTO += to; 
-                                    w = tw;
-                                    
-                                    if(t % (rb*2) === 0 && !isRunAll) { // Log sparingly (only for single run mode mainly)
-                                        const activeHoldings = Object.entries(w).filter(([k,v])=>v>0.01).map(([k,v])=>`${k}:${Math.round(v*100)}%`).join(', ');
-                                        log.push({ date: dates[t], action: activeHoldings || "Cash", turnover: (to*100).toFixed(1)+"%" });
-                                    }
-                                }
-                                ca.push(va);
+                                totTO += to; 
+                                w = tw;
+                                
+                                const activeHoldings = Object.entries(w)
+                                    .filter(([k,v])=>v>0.001)
+                                    .sort((a,b)=>b[1]-a[1])
+                                    .map(([k,v])=>`<span class="font-bold text-slate-700">${k}</span>:${Math.round(v*100)}%`)
+                                    .join(', ');
+                                
+                                log.push({ 
+                                    date: dates[t], 
+                                    action: activeHoldings || "<span class='text-slate-400'>Cash (100%)</span>", 
+                                    turnover: to > 0.01 ? `<span class="text-rose-600 font-bold">${(to*100).toFixed(1)}%</span>` : `<span class="text-slate-400">0%</span>`
+                                });
                             }
-                            
-                            const stats = calcStats(ca);
-                            const years = (prices.length - startIdx) / 252;
-                            const annTO = years > 0 ? ((totTO / 2) / years) * 100 : 0;
-                            
-                            // Bench
-                            let benchCurve = null;
-                            if(STATE.benchmarkData) {
-                                const base = STATE.benchmarkData[startIdx] || 1;
-                                benchCurve = STATE.benchmarkData.slice(startIdx).map(v => (v/base)*1000);
-                            } else if (benchSym === "EQUAL_WEIGHT") {
-                                let bc = [1000], bv=1000;
-                                for(let t=startIdx; t<prices.length; t++) {
-                                    let dr=0; STATE.assets.forEach(k=>dr+=(1/STATE.assets.length)*(daily[k][t]||0));
-                                    bv *= (1+dr); bc.push(bv);
-                                }
-                                benchCurve = bc;
-                            }
-
-                            STATE.batchResults.push({ 
-                                config:{ strat, stratName: STRAT_SHORT_NAMES[strat] || strat, lb, rb }, 
-                                curve:ca, 
-                                dates: dates.slice(startIdx), 
-                                stats, 
-                                annTO: annTO.toFixed(0), 
-                                log, 
-                                benchCurve,
-                                benchStats: calcStats(benchCurve),
-                                rollSettings: { horizons, rollStep }
-                            });
+                            ca.push(va);
                         }
+                        
+                        const stats = calcStats(ca);
+                        const years = (prices.length - startIdx) / 252;
+                        const annTO = years > 0 ? ((totTO / 2) / years) * 100 : 0;
+                        
+                        let benchCurve = null;
+                        if(STATE.benchmarkData) {
+                            const base = STATE.benchmarkData[startIdx] || 1;
+                            benchCurve = STATE.benchmarkData.slice(startIdx).map(v => (v/base)*1000);
+                        } else if (benchSym === "EQUAL_WEIGHT") {
+                            let bc = [1000], bv=1000;
+                            for(let t=startIdx; t<prices.length; t++) {
+                                let dr=0; STATE.assets.forEach(k=>dr+=(1/STATE.assets.length)*(daily[k][t]||0));
+                                bv *= (1+dr); bc.push(bv);
+                            }
+                            benchCurve = bc;
+                        }
+
+                        STATE.batchResults.push({ 
+                            config:{ strat: stratName, lb, rb }, 
+                            curve:ca, 
+                            dates: dates.slice(startIdx), 
+                            stats, 
+                            annTO: annTO.toFixed(0), 
+                            log, 
+                            benchCurve,
+                            benchStats: calcStats(benchCurve),
+                            rollSettings: { horizons, rollStep }
+                        });
                     }
                 }
-            } else {
-                alert("No valid data fetched. Check inspector.");
             }
             
             STATE.batchResults.sort((a,b)=>parseFloat(b.stats.sharpe)-parseFloat(a.stats.sharpe));
@@ -1015,13 +1180,11 @@
             tr.className = `batch-row transition-all ${globalIdx===STATE.selectedResultIndex ? 'selected' : ''}`;
             tr.onclick = () => viewResult(globalIdx);
             
-            // Strat Name Pill Color
-            let stratColor = "text-slate-500";
-            if(r.config.strat.includes("Top3")) stratColor = "text-indigo-600 font-bold";
-            if(r.config.strat.includes("Dual")) stratColor = "text-purple-600 font-bold";
+            // Shorten strat name for display
+            const shortStrat = r.config.strat.replace('Top3_Equal','Top3 Eq').replace('Equal_Weight','Eq Wgt').replace('Rank_All','Rank All');
 
             tr.innerHTML = `
-                <td class="text-left ${stratColor}">${r.config.stratName}</td>
+                <td class="text-left font-bold text-slate-700 text-[10px]">${shortStrat}</td>
                 <td class="font-mono text-slate-500">${r.config.lb}</td>
                 <td class="font-mono text-slate-500">${r.config.rb}</td>
                 <td class="font-bold ${parseFloat(r.stats.cagr)>0?'text-emerald-600':'text-rose-600'}">${r.stats.cagr}%</td>
@@ -1042,7 +1205,6 @@
             if(col==='lb') { vA=a.config.lb; vB=b.config.lb; }
             else if(col==='rb') { vA=a.config.rb; vB=b.config.rb; }
             else if(col==='turnover') { vA=parseFloat(a.annTO); vB=parseFloat(b.annTO); }
-            else if(col==='strat') { vA=a.config.stratName; vB=b.config.stratName; return STATE.sortAsc ? vA.localeCompare(vB) : vB.localeCompare(vA); }
             else { vA=parseFloat(a.stats[col]); vB=parseFloat(b.stats[col]); }
             return STATE.sortAsc ? vA-vB : vB-vA;
         });
@@ -1062,7 +1224,6 @@
         rows.forEach(r => r.classList.remove('selected'));
         renderBatchTable();
 
-        document.getElementById('res-strat-name').innerText = res.config.stratName;
         document.getElementById('res-cagr').innerText = res.stats.cagr + "%";
         document.getElementById('res-sharpe').innerText = res.stats.sharpe;
         document.getElementById('res-mdd').innerText = res.stats.mdd + "%";
@@ -1079,13 +1240,9 @@
 
         const hBody = document.getElementById('history-body');
         hBody.innerHTML = '';
-        if(res.log.length > 0) {
-            res.log.slice().reverse().forEach(l => {
-                hBody.innerHTML += `<tr><td>${l.date}</td><td>${l.action}</td><td>${l.turnover}</td></tr>`;
-            });
-        } else {
-             hBody.innerHTML += `<tr><td colspan="3" class="text-center py-4">Logs disabled for "Run All" (Too large)</td></tr>`;
-        }
+        res.log.slice().reverse().forEach(l => {
+            hBody.innerHTML += `<tr><td class="font-mono text-xs">${l.date}</td><td class="text-xs">${l.action}</td><td class="text-xs">${l.turnover}</td></tr>`;
+        });
     }
 
     // --- CHART RENDERING ---
@@ -1096,7 +1253,7 @@
         const ctx = document.getElementById('chart-equity').getContext('2d');
         
         const datasets = [{
-            label: res.config.stratName,
+            label: `${res.config.strat}`,
             data: res.curve,
             borderColor: '#059669',
             backgroundColor: 'rgba(5, 150, 105, 0.1)',
